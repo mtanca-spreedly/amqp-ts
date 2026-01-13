@@ -1,0 +1,52 @@
+name: Tests
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      rabbitmq:
+        image: rabbitmq:management
+        ports:
+          - 5672:5672
+          - 15672:15672
+        options: >-
+          --health-cmd "rabbitmq-diagnostics -q ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, 22.x]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Compile TypeScript
+      run: |
+        npx tsc src/amqp-ts.ts --declaration --module commonjs --target ES5 --outDir transpiled
+        npx tsc src/amqp-ts.spec.ts --module commonjs --target ES5 --outDir transpiled --skipLibCheck
+        cp transpiled/amqp-ts.js lib/amqp-ts.js
+        cp transpiled/amqp-ts.d.ts lib/amqp-ts.d.ts
+
+    - name: Run tests
+      run: npx mocha transpiled/amqp-ts.spec.js --reporter spec --require tools/mocha/setup.js --timeout 10000
+      env:
+        AMQPTEST_CONNECTION_URL: amqp://guest:guest@localhost:5672
+        AMQPTEST_TIMEOUT: 10000

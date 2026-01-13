@@ -237,6 +237,89 @@ What's new    <a name="whatsnew"></a>
 
 
 
+Testing
+-------
+
+### Prerequisites
+
+- Docker (for running RabbitMQ)
+- Node.js and npm
+
+### Running Tests
+
+The test suite requires a running RabbitMQ instance. The easiest way to set this up is using Docker.
+
+#### 1. Start RabbitMQ with Docker
+
+Using Docker Compose (recommended):
+
+```bash
+docker-compose up -d rabbitmq
+```
+
+Or using Docker directly:
+
+```bash
+docker run -d --name rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:management
+```
+
+#### 2. Compile TypeScript
+
+Before running the tests, you need to compile both the source code and test files to JavaScript:
+
+```bash
+# Compile the main source file
+npx tsc src/amqp-ts.ts --declaration --module commonjs --target ES5 --outDir transpiled
+
+# Compile the test spec file
+npx tsc src/amqp-ts.spec.ts --module commonjs --target ES5 --outDir transpiled --skipLibCheck
+
+# Copy compiled files to lib directory
+cp transpiled/amqp-ts.js lib/amqp-ts.js
+cp transpiled/amqp-ts.d.ts lib/amqp-ts.d.ts
+```
+
+#### 3. Run the Test Suite
+
+The tests can be run using the gulp task:
+
+```bash
+gulp test
+```
+
+Or directly with mocha:
+
+```bash
+npx mocha transpiled/amqp-ts.spec.js --reporter spec --require tools/mocha/setup.js --timeout 10000
+```
+
+#### 4. Configuration Options
+
+The test suite supports the following environment variables:
+
+- `AMQPTEST_CONNECTION_URL` - RabbitMQ connection URL (default: `amqp://localhost`)
+- `AMQPTEST_TIMEOUT` - Test timeout in milliseconds (default: `1500`)
+- `AMQPTEST_LOGLEVEL` - Logging level (default: `critical`)
+- `AMQPTEST_EXCHANGE_PREFIX` - Exchange name prefix (default: `TestExchange_`)
+- `AMQPTEST_QUEUE_PREFIX` - Queue name prefix (default: `TestQueue_`)
+
+Example with custom configuration:
+
+```bash
+AMQPTEST_CONNECTION_URL=amqp://user:pass@localhost:5672 AMQPTEST_TIMEOUT=10000 npx mocha transpiled/amqp-ts.spec.js --reporter spec --require tools/mocha/setup.js --timeout 10000
+```
+
+#### 5. Expected Results
+
+A successful test run should show:
+
+```
+54 passing (11s)
+```
+
+All tests should pass, indicating that the library is functioning correctly with your RabbitMQ instance.
+
+
 Roadmap    <a name="roadmap"></a>
 -------
 
