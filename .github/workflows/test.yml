@@ -46,7 +46,7 @@ jobs:
         cp transpiled/amqp-ts.d.ts lib/amqp-ts.d.ts
 
     - name: Run tests
-      run: npx mocha transpiled/amqp-ts.spec.js --reporter spec --require tools/mocha/setup.js --timeout 10000
+      run: npx mocha transpiled/amqp-ts.spec.js --reporter spec --require tools/mocha/setup.js --timeout 10000 --exit
       env:
         AMQPTEST_CONNECTION_URL: amqp://guest:guest@localhost:5672
         AMQPTEST_TIMEOUT: 10000

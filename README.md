@@ -290,7 +290,7 @@ gulp test
 Or directly with mocha:
 
 ```bash
-npx mocha transpiled/amqp-ts.spec.js --reporter spec --require tools/mocha/setup.js --timeout 10000
+npx mocha transpiled/amqp-ts.spec.js --reporter spec --require tools/mocha/setup.js --timeout 10000 --exit
 ```
 
 #### 4. Configuration Options
@@ -306,7 +306,7 @@ The test suite supports the following environment variables:
 Example with custom configuration:
 
 ```bash
-AMQPTEST_CONNECTION_URL=amqp://user:pass@localhost:5672 AMQPTEST_TIMEOUT=10000 npx mocha transpiled/amqp-ts.spec.js --reporter spec --require tools/mocha/setup.js --timeout 10000
+AMQPTEST_CONNECTION_URL=amqp://user:pass@localhost:5672 AMQPTEST_TIMEOUT=10000 npx mocha transpiled/amqp-ts.spec.js --reporter spec --require tools/mocha/setup.js --timeout 10000 --exit
 ```
 
 #### 5. Expected Results
