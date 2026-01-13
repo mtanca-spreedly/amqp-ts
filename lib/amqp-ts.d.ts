@@ -91,7 +91,7 @@ export declare class Message {
 }
 export declare class Exchange {
     initialized: Promise<Exchange.InitializeResult>;
-    _consumer_handlers: Array<[string, any]>;
+    _consumer_handlers: Array<[string, any, any]>;
     _isConsumerInitializedRcp: boolean;
     _connection: Connection;
     _channel: AmqpLib.Channel;

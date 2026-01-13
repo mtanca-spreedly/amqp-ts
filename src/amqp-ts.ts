@@ -359,9 +359,9 @@ export class Message {
 
   setContent(content: any): void {
     if (typeof content === "string") {
-      this.content = new Buffer(content);
+      this.content = Buffer.from(content);
     } else if (!(content instanceof Buffer)) {
-      this.content = new Buffer(JSON.stringify(content));
+      this.content = Buffer.from(JSON.stringify(content));
       this.properties.contentType = "application/json";
     } else {
       this.content = content;
@@ -440,7 +440,7 @@ export class Message {
 export class Exchange {
   initialized: Promise<Exchange.InitializeResult>;
 
-  _consumer_handlers: Array<[string, any]> = new Array<[string, any]>();
+  _consumer_handlers: Array<[string, any, any]> = new Array<[string, any, any]>();
   _isConsumerInitializedRcp: boolean = false;
 
   _connection: Connection;
@@ -506,9 +506,9 @@ export class Exchange {
    */
   publish(content: any, routingKey = "", options: any = {}): void {
     if (typeof content === "string") {
-      content = new Buffer(content);
+      content = Buffer.from(content);
     } else if (!(content instanceof Buffer)) {
-      content = new Buffer(JSON.stringify(content));
+      content = Buffer.from(JSON.stringify(content));
       options.contentType = options.contentType || "application/json";
     }
     this.initialized.then(() => {
@@ -551,7 +551,13 @@ export class Exchange {
             for (let handler of this._consumer_handlers) {
               if (handler[0] === resultMsg.properties.correlationId) {
                 let func: Function = handler[1];
+                let resolveFunc: Function = handler[2];
+                if (func) {
                   func.apply("", [undefined, result]);
+                }
+                if (resolveFunc) {
+                  resolveFunc(result);
+                }
               }
             }
 
@@ -561,14 +567,14 @@ export class Exchange {
               reject(new Error("amqp-ts: Queue.rpc error: " + err.message));
             } else {
               // send the rpc request
-              this._consumer_handlers.push([uuid, callback]);
+              this._consumer_handlers.push([uuid, callback, resolve]);
               // consumerTag = ok.consumerTag;
               var message = new Message(requestParameters, { correlationId: uuid, replyTo: DIRECT_REPLY_TO_QUEUE });
               message.sendTo(this, routingKey);
             }
           });
         } else {
-          this._consumer_handlers.push([uuid, callback]);
+          this._consumer_handlers.push([uuid, callback, resolve]);
           var message = new Message(requestParameters, { correlationId: uuid, replyTo: DIRECT_REPLY_TO_QUEUE });
           message.sendTo(this, routingKey);
         }
@@ -793,9 +799,9 @@ export class Queue {
 
   static _packMessageContent(content: any, options: any): Buffer {
     if (typeof content === "string") {
-      content = new Buffer(content);
+      content = Buffer.from(content);
     } else if (!(content instanceof Buffer)) {
-      content = new Buffer(JSON.stringify(content));
+      content = Buffer.from(JSON.stringify(content));
       options.contentType = "application/json";
     }
     return content;
