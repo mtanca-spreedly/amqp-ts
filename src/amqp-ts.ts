@@ -29,11 +29,12 @@ var amqp_log = new winston.Logger({
 export var log = amqp_log;
 
 function getErrorDetails(err: any) {
+  if (!err) return {};
   return {
-    errorMessage: err && err.message,
-    errorStack: err && err.stack,
-    errorCode: err && err.code,
-    errorName: err && err.name
+    errorMessage: err.message,
+    errorStack: err.stack,
+    errorCode: err.code,
+    errorName: err.name
   };
 }
 
