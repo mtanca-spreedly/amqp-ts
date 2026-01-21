@@ -28,6 +28,16 @@ var amqp_log = new winston.Logger({
 });
 export var log = amqp_log;
 
+function getErrorDetails(err: any) {
+  if (!err) return {};
+  return {
+    errorMessage: err.message,
+    errorStack: err.stack,
+    errorCode: err.code,
+    errorName: err.name
+  };
+}
+
 // name for the RabbitMQ direct reply-to queue
 const DIRECT_REPLY_TO_QUEUE = "amq.rabbitmq.reply-to";
 
@@ -480,7 +490,8 @@ export class Exchange {
             let callback = (err, ok) => {
               /* istanbul ignore if */
               if (err) {
-                log.log("error", "Failed to create exchange '" + this._name + "'.", { module: "amqp-ts" });
+                log.log("error", "Failed to create exchange '" + this._name + "'",
+                  { module: "amqp-ts", ...getErrorDetails(err) });
                 delete this._connection._exchanges[this._name];
                 reject(err);
               } else {
@@ -495,7 +506,7 @@ export class Exchange {
           }
         });
       }).catch((err) => {
-        log.log("warn", "Channel failure, error caused during connection!", { module: "amqp-ts" });
+        log.log("error", "Channel failure, error caused during connection!", { module: "amqp-ts", ...getErrorDetails(err) });
       });
     });
     this._connection._exchanges[this._name] = this;
@@ -773,7 +784,8 @@ export class Queue {
             let callback = (err, ok) => {
               /* istanbul ignore if */
               if (err) {
-                log.log("error", "Failed to create queue '" + this._name + "'.", { module: "amqp-ts" });
+                log.log("error", "Failed to create queue '" + this._name + "'",
+                  { module: "amqp-ts", ...getErrorDetails(err) });
                 delete this._connection._queues[this._name];
                 reject(err);
               } else {
@@ -792,7 +804,7 @@ export class Queue {
           }
         });
       }).catch((err) => {
-        log.log("warn", "Channel failure, error caused during connection!", { module: "amqp-ts" });
+        log.log("error", "Channel failure, error caused during connection!", { module: "amqp-ts", ...getErrorDetails(err) });
       });
     });
   }
@@ -1195,7 +1207,7 @@ export class Binding {
               log.log("error",
                   "Failed to create queue binding (" +
                   this._source._name + "->" + this._destination._name + ")",
-                  { module: "amqp-ts" });
+                  { module: "amqp-ts", ...getErrorDetails(err) });
               delete this._destination._connection._bindings[Binding.id(this._destination, this._source, this._pattern)];
               reject(err);
             } else {
@@ -1212,7 +1224,7 @@ export class Binding {
               log.log("error",
                   "Failed to create exchange binding (" +
                   this._source._name + "->" + this._destination._name + ")",
-                  { module: "amqp-ts" });
+                  { module: "amqp-ts", ...getErrorDetails(err) });
               delete this._destination._connection._bindings[Binding.id(this._destination, this._source, this._pattern)];
               reject(err);
             } else {
